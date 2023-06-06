@@ -6,5 +6,5 @@ pub mod prelude {
     pub use crate::{MODELS, MODELS_DIR};
 }
 
-pub const MODELS: &'static str = "spacekit/models/";
+pub const MODELS: &str = "spacekit/models/";
 pub const MODELS_DIR: &str = concat!("assets/", "spacekit/models/");
