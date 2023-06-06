@@ -7,4 +7,4 @@ pub mod prelude {
 }
 
 pub const MODELS: &str = "spacekit/models/";
-pub const MODELS_DIR: &str = concat!("assets/", "spacekit/models/");
+pub const MODELS_DIR: &str = concat!("./assets/", "spacekit/models/");
