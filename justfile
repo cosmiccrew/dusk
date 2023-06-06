@@ -14,3 +14,9 @@ test:
   cargo test --features=dynamic_linking
 
 actions: fmt check test
+
+
+#tools
+
+kenny_gltf_fixer:
+  cargo run -p kenny_gltf_fixer

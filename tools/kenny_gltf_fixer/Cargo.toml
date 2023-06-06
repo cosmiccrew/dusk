@@ -1,5 +1,5 @@
 [package]
-name = "gltf-fixer"
+name = "kenny_gltf_fixer"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 gltf = { version = "1.1.0", features = ["import"] }
+anyhow = "1.0.71"
+# ureq = "2.6.2"
+# zip = "0.6.6"
