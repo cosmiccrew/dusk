@@ -43,7 +43,7 @@ jobs:
           shared-key: clippy-${{ matrix.os }}
           prefix-key: v0 #increment this to bust the cache if needed
       - name: Run cargo clippy
-        run: cargo clippy --all-targets --features=dynamic_linking -- -D warnings
+        run: cargo clippy --profile actions --all-targets --features=dynamic_linking -- -D warnings
 
   #checks rust fmt - helps ensure all commits are in sync
   fmt:
@@ -94,4 +94,4 @@ jobs:
           shared-key: test-${{ matrix.os }}
           prefix-key: v0 #increment this to bust the cache if needed
       - name: Run cargo test
-        run: cargo test --all --features=dynamic_linking
+        run: cargo test --profile actions --all --features=dynamic_linking
