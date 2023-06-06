@@ -80,11 +80,11 @@ fn setup(
                 ..default()
             });
 
-            if rolling_x >= area {
+            if rolling_x < area {
+                rolling_x += 1;
+            } else {
                 rolling_x = 0;
                 rolling_z += 1;
-            } else {
-                rolling_x += 1;
             }
 
             Ok(())
