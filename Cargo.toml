@@ -9,13 +9,13 @@ repository = "https://github.com/cosmiccrew/dusk"
 resolver = "2"
 members = ["tools/*"] #, "crates/*"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+#See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 bevy = "0.10.1"
 bevy_flycam = "0.10.1"
 
-#error handling
+#Error handling
 anyhow = "1.0.71"
 
 [features]
@@ -28,7 +28,10 @@ opt-level = 1
 
 #Enable high optimizations for dependencies (incl. Bevy), but not for our code:
 [profile.dev.package."*"]
+#High optimisations, but long compile times
 opt-level = 3
+#Medium optimisations, but shorter compile times
+# opt-level = 2
 
 #Profiles for github actions
 [profile.actions]
