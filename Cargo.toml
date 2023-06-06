@@ -13,6 +13,10 @@ members = ["tools/*"] #, "crates/*"]
 
 [dependencies]
 bevy = "0.10.1"
+bevy_flycam = "0.10.1"
+
+#error handling
+anyhow = "1.0.71"
 
 [features]
 dynamic_linking = ["bevy/dynamic_linking"]
