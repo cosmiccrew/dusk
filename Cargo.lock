@@ -315,6 +315,8 @@ dependencies = [
  "bevy_reflect",
  "bevy_utils",
  "downcast-rs",
+ "ron",
+ "serde",
  "wasm-bindgen",
  "web-sys",
 ]
