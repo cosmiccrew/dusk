@@ -19,7 +19,10 @@ bevy_flycam = "0.10.1"
 anyhow = "1.0.71"
 
 [features]
+default = []
+
 dynamic_linking = ["bevy/dynamic_linking"]
+ci_testing = ["bevy/bevy_ci_testing"]
 
 [profile.dev]
 opt-level = 1
