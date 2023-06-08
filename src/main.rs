@@ -5,7 +5,7 @@ use bevy::window::close_on_esc;
 use bevy_flycam::prelude::*;
 use dusk::prelude::*;
 
-fn main() -> Result<()> {
+fn main() {
     App::new()
         .insert_resource(AmbientLight {
             color: Color::WHITE,
@@ -17,8 +17,6 @@ fn main() -> Result<()> {
         .add_system(close_on_esc)
         .add_startup_system(setup.pipe(handle_setup_errors))
         .run();
-
-    Ok(())
 }
 
 fn setup(
