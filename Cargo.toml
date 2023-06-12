@@ -18,7 +18,7 @@ bevy_flycam = "0.10.1"
 
 bevy-inspector-egui = "0.18.3"
 
-serde = "1.0.163"
+serde = "1.0.164"
 bevy_rapier3d = { version = "0.21.0", features = ["serde-serialize","parallel", "debug-render-3d"]}
 
 #Error handling
