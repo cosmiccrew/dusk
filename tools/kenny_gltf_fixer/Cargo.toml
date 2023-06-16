@@ -5,6 +5,10 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+#temporary fix for cargo-bundle being a bit wierd
+# [package.metadata.bundle]
+
+
 [dependencies]
 gltf = { version = "1.2.0", features = ["import"] }
 anyhow = "1.0.71"
