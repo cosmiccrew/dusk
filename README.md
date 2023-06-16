@@ -1,5 +1,8 @@
+
 `Cosmic Crew: Dusk`
 ==================
+![CI](https://github.com/cosmiccrew/dusk/actions/workflows/ci.yml/badge.svg)
+![Release](https://github.com/cosmiccrew/dusk/actions/workflows/release.yml/badge.svg)
 
 Cosmic Crew: Dusk ~~is~~ will be a conceptual, 3d interplanitary base building game. The main inspiration comes from the "Space Kit" free assets found at [kenny.nl/assets/space-kit](https://kenney.nl/assets/space-kit). **NOTE: This project is in an extraordinarily early stage, and the idea, concept and any related content is subject to drastic change and modification.**
 
@@ -10,10 +13,11 @@ Cosmic Crew: Dusk ~~is~~ will be a conceptual, 3d interplanitary base building g
 To run and play Cosmic Crew: Dusk, there are a few options:
 
 
-#### Releases (PLANNED)
+#### Releases
 
-1. ~~By downloading the game from the github release page~~
-2. ~~Extracting the archive and running the executable~~
+1. By downloading either a specifc release or 'nightly version of the game from the github [releases page](https://github.com/cosmiccrew/dusk/releases)
+2. Extracting the archive (if necessary)
+3. Running or opening the executable
 
 
 #### From source
