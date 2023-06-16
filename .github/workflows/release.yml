@@ -1,0 +1,185 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+  schedule:
+    # Run every night
+    - cron: "0 4 * * *"
+
+defaults:
+  run:
+    shell: bash
+    
+jobs:
+  generate_changelog:
+    name: 📜 Generate Changelog
+    runs-on: ubuntu-latest
+    outputs:
+      release_body: ${{ steps.git-cliff.outputs.content }}
+
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: 📠 Calculate Git Cliff Args
+        id: cliff-args
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "args=--latest" >> $GITHUB_OUTPUT
+          else
+            echo "args=--unreleased" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 📜 Generate Changelog
+        uses: orhun/git-cliff-action@v2
+        id: git-cliff
+        with:
+          args: -vv --strip all ${{ steps.cliff-args.outputs.args }}
+
+      - name: 📝 Set Job Summary
+        run: |
+          echo "${{ steps.git-cliff.outputs.content }}" >> $GITHUB_STEP_SUMMARY
+
+
+  build:
+    name: 🛠 Build and bundle (${{ matrix.config.name }})
+    runs-on: ${{ matrix.config.os }}
+    continue-on-error: true
+    outputs:
+      release_version: ${{ env.RELEASE_VERSION }}
+    env:
+      CARGO_TERM_COLOR: always
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - { os: ubuntu-latest, target: "x86_64-unknown-linux-gnu", name: "linux-x86_64" }
+          - { os: ubuntu-latest, target: "aarch64-unknown-linux-gnu", name: "linux-arm64" }
+          - { os: macos-latest, target: "x86_64-apple-darwin", name: "macos-x86_64" }
+          - { os: macos-latest, target: "aarch64-apple-darwin", name: "macos-arm64" }
+          - { os: windows-latest, target: "x86_64-pc-windows-msvc", name: "windows-x86_64" }
+
+    steps:
+      - name: 🧮 Calculate release version name
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" -o "${{ github.event_name }}" = "schedule" ]; then
+            echo "RELEASE_VERSION=nightly-$(date '+%Y-%m-%d')" >> $GITHUB_ENV
+          else
+            echo "RELEASE_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+          fi
+
+          
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v3
+
+
+      - name: Install platform specific dependencies [Linux]
+        if: matrix.config.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update &&
+          sudo apt-get install -y g++ pkg-config libx11-dev libasound2-dev libudev-dev
+
+
+      - name: Cache rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: build-${{ matrix.config.name }}
+          prefix-key: v0 #increment this to bust the cache if needed
+          save-if: ${{ github.event_name != 'schedule' }}
+
+      - name: Install cargo-bundle [Unix]
+        if: matrix.config.os != 'windows-latest'
+        run: |
+          curl -L https://github.com/cosmiccrew/cargo-bundle/releases/download/binaries/cargo-bundle-${{ matrix.config.os }} -o cargo-bundle
+          chmod +x cargo-bundle
+          mv cargo-bundle $HOME/.cargo/bin/cargo-bundle      
+
+
+      - name: Install ${{ matrix.config.target }} target
+        run: rustup target add ${{ matrix.config.target }}
+
+
+      - name: 🛠 Build [windows]
+        if: matrix.config.os == 'windows-latest'
+        run: cargo build --release --locked --target ${{ matrix.config.target }}
+
+      - name: 🛠 Build + Bundle [Linux]
+        if: matrix.config.os == 'ubuntu-latest'
+        run: |
+          cargo install cross --locked
+          cross build --release --target ${{ matrix.config.target }}
+          CARGO_BUNDLE_SKIP_BUILD=1 cargo bundle --release --target ${{ matrix.config.target }}
+
+      - name: 🛠 Build + Bundle [Macos]
+        if: matrix.config.os == 'macos-latest'
+        run: cargo bundle --release --target ${{ matrix.config.target }}
+
+
+      - name: Prepare artifacts [Windows]
+        shell: bash
+        if: matrix.config.os == 'windows-latest'
+        run: |
+          release_dir="dusk-${{ env.RELEASE_VERSION }}"
+          artifact_path="dusk-${{ env.RELEASE_VERSION }}-${{ matrix.config.name }}.zip"
+          echo "ARTIFACT_PATH=$artifact_path" >> $GITHUB_ENV
+          mkdir $release_dir
+          cp target/${{ matrix.config.target }}/release/dusk.exe $release_dir/
+          cp -R assets/ $release_dir/
+          7z a -tzip $artifact_path $release_dir/
+
+      - name: Prepare artifacts [Macos]
+        shell: bash
+        if: matrix.config.os == 'macos-latest'
+        run: |
+          release_dir="dusk-${{ env.RELEASE_VERSION }}.app"
+          artifact_path="dusk-${{ env.RELEASE_VERSION }}-${{ matrix.config.name }}.tar.gz"
+          echo "ARTIFACT_PATH=$artifact_path" >> $GITHUB_ENV
+          mkdir $release_dir
+          cp -r 'target/${{ matrix.config.target }}/release/bundle/osx/dusk.app/' $release_dir/
+          tar -czvf $artifact_path $release_dir/
+
+      - name: Prepare artifacts [Linux (.deb)]
+        shell: bash
+        if: matrix.config.os == 'ubuntu-latest'
+        run: |
+          artifact_path="dusk-${{ env.RELEASE_VERSION }}-${{ matrix.config.name }}.deb"
+          echo "ARTIFACT_PATH=$artifact_path" >> $GITHUB_ENV
+          cp target/${{ matrix.config.target }}/release/bundle/deb/dusk.deb $artifact_path
+
+      - name: ⏫️ Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.ARTIFACT_PATH }}
+          path: ${{ env.ARTIFACT_PATH }}
+          if-no-files-found: error
+
+  publish:
+    name: 🚀 Publish
+    needs:
+      - generate_changelog
+      - build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Download Artifacts
+        uses: actions/download-artifact@v3
+
+      - name: 🔒 Generate Checksums
+        run: for file in dusk-*/dusk-*; do openssl dgst -sha256 -r "$file" | awk '{print $1}' > "${file}.sha256"; done
+
+      - name: 🚀 Publish Release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          release_name: ${{ needs.build.outputs.release_version }}
+          file: dusk-*/dusk-*
+          file_glob: true
+          overwrite: true
+          prerelease: ${{ github.event_name != 'push' }}
+          body: ${{ needs.generate_changelog.outputs.release_body }}
+          tag: ${{ needs.build.outputs.release_version }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
