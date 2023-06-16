@@ -70,10 +70,7 @@ fn setup(
     let models_dir = root_path.join(MODELS_DIR);
 
     let length = std::fs::read_dir(models_dir.clone())
-        .context(format!(
-            "reading length of directory: {:?}",
-            models_dir.clone()
-        ))?
+        .context(format!("reading length of directory: {:?}", models_dir))?
         .count() as f32;
 
     let area = length.sqrt().ceil() as u32;
@@ -81,7 +78,7 @@ fn setup(
     let mut rolling_x = 0;
     let mut rolling_z = 0;
 
-    let errors = std::fs::read_dir(models_dir.clone())?
+    let errors = std::fs::read_dir(models_dir)?
         .map(|entry| -> Result<()> {
             let path = entry?.path();
 
