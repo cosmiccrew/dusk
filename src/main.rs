@@ -12,7 +12,27 @@ fn main() {
             brightness: 1.0 / 5.0f32,
         })
         .insert_resource(DirectionalLightShadowMap { size: 4096 })
-        .add_plugins(DefaultPlugins)
+        .add_plugins(
+            DefaultPlugins
+                .set(WindowPlugin {
+                    primary_window: Some(Window {
+                        title: "Cosmic Crew: Galaxy".to_string(),
+                        fit_canvas_to_parent: true,
+                        ..default()
+                    }),
+                    ..default()
+                })
+                .set(AssetPlugin {
+                    watch_for_changes: true,
+                    asset_folder: {
+                        if cfg!(target_os = "macos") {
+                            "../Resources/assets".to_string()
+                        } else {
+                            "assets".to_string()
+                        }
+                    },
+                }),
+        )
         .add_plugin(PlayerPlugin)
         .add_system(close_on_esc)
         .add_startup_system(setup.pipe(handle_setup_errors))
@@ -33,14 +53,27 @@ fn setup(
     });
 
     // //model
-    // commands.spawn(SceneBundle {
-    //     scene: asset_server.load("models/craft_miner.glb#Scene0"),
-    //     transform: Transform::from_rotation(Quat::from_rotation_y(-PI)),
-    //     ..default()
-    // });
+    commands.spawn(SceneBundle {
+        scene: asset_server.load("spacekit/models/craft_miner.glb#Scene0"),
+        transform: Transform::from_rotation(Quat::from_rotation_y(-PI)),
+        ..default()
+    });
 
-    let length = std::fs::read_dir(MODELS_DIR)
-        .context("reading length of directory")?
+    let root_path = std::env::current_exe()
+        .map(|path| {
+            path.parent()
+                .map(|exe_parent_path| exe_parent_path.to_owned())
+                .unwrap()
+        })
+        .unwrap();
+
+    let models_dir = root_path.join(MODELS_DIR);
+
+    let length = std::fs::read_dir(models_dir.clone())
+        .context(format!(
+            "reading length of directory: {:?}",
+            models_dir.clone()
+        ))?
         .count() as f32;
 
     let area = length.sqrt().ceil() as u32;
@@ -48,7 +81,7 @@ fn setup(
     let mut rolling_x = 0;
     let mut rolling_z = 0;
 
-    let errors = std::fs::read_dir(MODELS_DIR)?
+    let errors = std::fs::read_dir(models_dir.clone())?
         .map(|entry| -> Result<()> {
             let path = entry?.path();
 
