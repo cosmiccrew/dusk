@@ -25,7 +25,10 @@ fn main() {
                 .set(AssetPlugin {
                     watch_for_changes: true,
                     asset_folder: {
-                        if cfg!(target_os = "macos") {
+                        if cfg!(all(
+                            target_os = "macos",
+                            not(all(debug_assertions, features = "dynamic_linking"))
+                        )) {
                             "../Resources/assets".to_string()
                         } else {
                             "assets".to_string()
@@ -48,16 +51,17 @@ fn setup(
     //plane
     commands.spawn(PbrBundle {
         mesh: meshes.add(shape::Plane::from_size(100.0).into()),
+        transform: Transform::from_xyz(0., 0., -0.1),
         material: materials.add(Color::SEA_GREEN.into()),
         ..default()
     });
 
-    // //model
-    commands.spawn(SceneBundle {
-        scene: asset_server.load("spacekit/models/craft_miner.glb#Scene0"),
-        transform: Transform::from_rotation(Quat::from_rotation_y(-PI)),
-        ..default()
-    });
+    //model
+    // commands.spawn(SceneBundle {
+    //     scene: asset_server.load("spacekit/models/craft_miner.glb#Scene0"),
+    //     transform: Transform::from_rotation(Quat::from_rotation_y(-PI)),
+    //     ..default()
+    // });
 
     let root_path = std::env::current_exe()
         .map(|path| {
@@ -67,7 +71,14 @@ fn setup(
         })
         .unwrap();
 
-    let models_dir = root_path.join(MODELS_DIR);
+    let models_dir = if cfg!(all(
+        target_os = "macos",
+        not(all(debug_assertions, features = "dynamic_linking"))
+    )) {
+        root_path.join(MODELS_DIR)
+    } else {
+        MODELS_DIR.into()
+    };
 
     let length = std::fs::read_dir(models_dir.clone())
         .context(format!("reading length of directory: {:?}", models_dir))?
