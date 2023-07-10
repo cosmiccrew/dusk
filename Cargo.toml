@@ -19,7 +19,7 @@ identifier = "dev.sycro.comsiccrew.dusk"
 resources = ["assets"]
 
 [dependencies]
-bevy = "0.10.1"
+bevy = "0.11.0"
 bevy_flycam = "0.10.1"
 
 bevy-inspector-egui = "0.18.3"
