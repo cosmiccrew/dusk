@@ -1,8 +1,11 @@
+use std::time::Duration;
+
 use anyhow::{Context, Result};
+use bevy::asset::ChangeWatcher;
 use bevy::pbr::DirectionalLightShadowMap;
 use bevy::prelude::*;
 use bevy::window::close_on_esc;
-use bevy_flycam::prelude::*;
+// use bevy_flycam::prelude::*;
 use dusk::prelude::*;
 
 fn main() {
@@ -16,18 +19,18 @@ fn main() {
             DefaultPlugins
                 .set(WindowPlugin {
                     primary_window: Some(Window {
-                        title: "Cosmic Crew: Galaxy".to_string(),
+                        title: "Cosmic Crew: Dusk".to_string(),
                         fit_canvas_to_parent: true,
                         ..default()
                     }),
                     ..default()
                 })
                 .set(AssetPlugin {
-                    watch_for_changes: true,
+                    watch_for_changes: ChangeWatcher::with_delay(Duration::from_millis(200)),
                     asset_folder: {
                         if cfg!(all(
                             target_os = "macos",
-                            not(all(debug_assertions, features = "dynamic_linking"))
+                            not(any(debug_assertions, features = "dynamic_linking"))
                         )) {
                             "../Resources/assets".to_string()
                         } else {
@@ -36,9 +39,9 @@ fn main() {
                     },
                 }),
         )
-        .add_plugin(PlayerPlugin)
-        .add_system(close_on_esc)
-        .add_startup_system(setup.pipe(handle_setup_errors))
+        // .add_plugins(PlayerPlugin)
+        .add_systems(Update, close_on_esc)
+        .add_systems(Startup, setup.pipe(handle_setup_errors))
         .run();
 }
 
@@ -48,6 +51,8 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) -> Result<()> {
+    commands.spawn(Camera3dBundle::default());
+
     //plane
     commands.spawn(PbrBundle {
         mesh: meshes.add(shape::Plane::from_size(100.0).into()),
@@ -73,7 +78,7 @@ fn setup(
 
     let models_dir = if cfg!(all(
         target_os = "macos",
-        not(all(debug_assertions, features = "dynamic_linking"))
+        not(any(debug_assertions, features = "dynamic_linking"))
     )) {
         root_path.join(MODELS_DIR)
     } else {

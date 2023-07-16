@@ -10,7 +10,7 @@ pub const MODELS: &str = "spacekit/models/";
 pub const MODELS_DIR: &str = {
     if cfg!(all(
         target_os = "macos",
-        not(all(debug_assertions, features = "dynamic_linking"))
+        not(any(debug_assertions, features = "dynamic_linking"))
     )) {
         //when LazyLock is stabilised, use it here in combination with std::env::current_exe()
         "../Resources/assets/spacekit/models/"
