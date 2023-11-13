@@ -28,7 +28,7 @@ bevy_rapier3d = { version = "0.22.0", features = ["serde-serialize", "debug-rend
 #helps with loading assets in a logical, dynamic format.
 bevy_asset_loader = { version = "0.17.0", features = ["3d", "standard_dynamic_assets"] }
 #handling inputs in a logical, extensible way with options for command combinations or aliases.
-leafwing-input-manager = "0.10.0"
+leafwing-input-manager = "0.11.1"
 
 #(ser)ialising/(de)serialising library
 serde = "1"
